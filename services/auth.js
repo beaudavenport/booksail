@@ -17,6 +17,19 @@ function login() {
     }));
 }
 
+function refresh(refreshToken) {
+  return fetch(config.refreshTokenUrl, {
+    headers: {
+      rfToken: refreshToken,
+    },
+  })
+    .then(response => response.json())
+    .then(result => ({
+      accessToken: result.access_token,
+    }));
+}
+
 export default {
   login,
+  refresh,
 };

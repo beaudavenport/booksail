@@ -48,4 +48,32 @@ describe('Auth Service', () => {
       });
     });
   });
+
+  describe('refresh', () => {
+    beforeEach(() => {
+      global.fetch = jest.fn();
+    });
+
+    it('should call to fetch new tokens using refresh token', () => {
+      const refreshToken = 'refresh-token';
+      const newAccessToken = 'new-access-token';
+      const refreshTokenResponse = {
+        json: () => Promise.resolve({
+          access_token: newAccessToken,
+        }),
+      };
+      fetch.mockResolvedValue(refreshTokenResponse);
+
+      const asyncResult = auth.refresh(refreshToken);
+
+      return asyncResult.then((refreshResult) => {
+        expect(refreshResult).toEqual({ accessToken: newAccessToken });
+
+        expect(fetch.mock.calls[0][0])
+          .toEqual(config.refreshTokenUrl);
+        expect(fetch.mock.calls[0][1])
+          .toEqual({ headers: { rfToken: refreshToken } });
+      });
+    });
+  });
 });
