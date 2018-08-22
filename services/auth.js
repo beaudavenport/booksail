@@ -1,4 +1,5 @@
 import { AuthSession } from 'expo';
+import { AsyncStorage } from 'react-native';
 import { get } from 'axios';
 import config from '../config';
 
@@ -11,21 +12,20 @@ function login() {
         code: authResponse.params.code,
       },
     }))
-    .then(result => ({
-      accessToken: result.access_token,
-      refreshToken: result.refresh_token,
-    }));
+    .then(result => Promise.all([
+      AsyncStorage.setItem('accessToken', result.access_token),
+      AsyncStorage.setItem('refreshToken', result.refresh_token),
+    ]));
 }
 
-function refresh(refreshToken) {
-  return get(config.refreshTokenUrl, {
-    headers: {
-      rfToken: refreshToken,
-    },
-  })
-    .then(result => ({
-      accessToken: result.access_token,
-    }));
+function refresh() {
+  return AsyncStorage.getItem('refreshToken')
+    .then(refreshToken => get(config.refreshTokenUrl, {
+      headers: {
+        rfToken: refreshToken,
+      },
+    }))
+    .then(result => AsyncStorage.setItem('accessToken', result.access_token));
 }
 
 export default {

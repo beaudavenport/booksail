@@ -1,5 +1,6 @@
 import React from 'react';
 import { AuthSession } from 'expo';
+import { AsyncStorage } from 'react-native';
 import axios from 'axios';
 import auth from '../services/auth';
 import config from '../config';
@@ -9,9 +10,12 @@ describe('Auth Service', () => {
     beforeEach(() => {
       AuthSession.startAsync = jest.fn();
       axios.get = jest.fn();
+      AsyncStorage.setItem = jest.fn();
+      AsyncStorage.getItem = jest.fn();
 
       AuthSession.startAsync.mockResolvedValue({ params: {} });
       axios.get.mockResolvedValue({});
+      AsyncStorage.setItem.mockResolvedValue({});
     });
 
     it('should call to auth session with auth url set', () => {
@@ -23,7 +27,7 @@ describe('Auth Service', () => {
       });
     });
 
-    it('should call to fetch tokens using request token', () => {
+    it('should call to fetch tokens using request token and save locally', () => {
       const requestToken = 'request-token';
       const accessToken = 'access-token';
       const refreshToken = 'refresh-token';
@@ -37,13 +41,16 @@ describe('Auth Service', () => {
 
       const asyncResult = auth.login();
 
-      return asyncResult.then((accessTokenResult) => {
-        expect(accessTokenResult).toEqual({ accessToken, refreshToken });
-
-        expect(axios.get.mock.calls[0][0])
-          .toEqual(config.accessTokenUrl);
-        expect(axios.get.mock.calls[0][1])
-          .toEqual({ headers: { code: requestToken } });
+      return asyncResult.then(() => {
+        expect(AsyncStorage.setItem.mock.calls[0])
+          .toEqual(['accessToken', accessToken]);
+        expect(AsyncStorage.setItem.mock.calls[1])
+          .toEqual(['refreshToken', refreshToken]);
+        expect(axios.get.mock.calls[0])
+          .toEqual([
+            config.accessTokenUrl,
+            { headers: { code: requestToken } },
+          ]);
       });
     });
   });
@@ -51,25 +58,32 @@ describe('Auth Service', () => {
   describe('refresh', () => {
     beforeEach(() => {
       axios.get = jest.fn();
+      AsyncStorage.setItem = jest.fn();
+
+      AsyncStorage.setItem.mockResolvedValue({});
     });
 
-    it('should call to fetch new tokens using refresh token', () => {
-      const refreshToken = 'refresh-token';
+    it('should call to fetch new token using refresh token and save locally', () => {
       const newAccessToken = 'new-access-token';
+      const refreshToken = 'refresh-token';
       const refreshTokenResponse = {
         access_token: newAccessToken,
       };
+      AsyncStorage.getItem.mockResolvedValue(refreshToken);
       axios.get.mockResolvedValue(refreshTokenResponse);
 
-      const asyncResult = auth.refresh(refreshToken);
+      const asyncResult = auth.refresh();
 
-      return asyncResult.then((refreshResult) => {
-        expect(refreshResult).toEqual({ accessToken: newAccessToken });
-
-        expect(axios.get.mock.calls[0][0])
-          .toEqual(config.refreshTokenUrl);
-        expect(axios.get.mock.calls[0][1])
-          .toEqual({ headers: { rfToken: refreshToken } });
+      return asyncResult.then(() => {
+        expect(AsyncStorage.getItem.mock.calls[0])
+          .toEqual(['refreshToken']);
+        expect(AsyncStorage.setItem.mock.calls[0])
+          .toEqual(['accessToken', newAccessToken]);
+        expect(axios.get.mock.calls[0])
+          .toEqual([
+            config.refreshTokenUrl,
+            { headers: { rfToken: refreshToken } },
+          ]);
       });
     });
   });
