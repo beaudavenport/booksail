@@ -30,7 +30,7 @@ describe('getWithToken', () => {
         .toEqual(url);
       expect(axios.get.mock.calls[0][1])
         .toEqual({
-          headers: { code: 'my-access-token' },
+          headers: { authorization: 'Bearer my-access-token' },
           params: { thing: 'yes' },
         });
       expect(AsyncStorage.getItem.mock.calls[0][0])
@@ -59,14 +59,14 @@ describe('getWithToken', () => {
       expect(axios.get.mock.calls[0])
         .toEqual([
           url, {
-            headers: { code: 'my-access-token' },
+            headers: { authorization: 'Bearer my-access-token' },
             params: { thing: 'yes' },
           },
         ]);
       expect(axios.get.mock.calls[1])
         .toEqual([
           url, {
-            headers: { code: 'new-access-token' },
+            headers: { authorization: 'Bearer new-access-token' },
             params: { thing: 'yes' },
           },
         ]);

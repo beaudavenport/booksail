@@ -6,7 +6,7 @@ function makeGetRequest(url, options) {
   return AsyncStorage.getItem('accessToken')
     .then(accessToken => get(url, {
       headers: {
-        code: accessToken,
+        authorization: `Bearer ${accessToken}`,
       },
       ...options,
     }));
