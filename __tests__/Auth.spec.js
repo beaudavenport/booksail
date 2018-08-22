@@ -1,5 +1,6 @@
 import React from 'react';
 import { AuthSession } from 'expo';
+import axios from 'axios';
 import auth from '../services/auth';
 import config from '../config';
 
@@ -7,10 +8,10 @@ describe('Auth Service', () => {
   describe('login', () => {
     beforeEach(() => {
       AuthSession.startAsync = jest.fn();
-      global.fetch = jest.fn();
+      axios.get = jest.fn();
 
       AuthSession.startAsync.mockResolvedValue({ params: {} });
-      fetch.mockResolvedValue({ json: () => Promise.resolve({}) });
+      axios.get.mockResolvedValue({});
     });
 
     it('should call to auth session with auth url set', () => {
@@ -29,21 +30,19 @@ describe('Auth Service', () => {
       AuthSession.startAsync
         .mockResolvedValue({ params: { code: requestToken } });
       const accessTokenResponse = {
-        json: () => Promise.resolve({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        }),
+        access_token: accessToken,
+        refresh_token: refreshToken,
       };
-      fetch.mockResolvedValue(accessTokenResponse);
+      axios.get.mockResolvedValue(accessTokenResponse);
 
       const asyncResult = auth.login();
 
       return asyncResult.then((accessTokenResult) => {
         expect(accessTokenResult).toEqual({ accessToken, refreshToken });
 
-        expect(fetch.mock.calls[0][0])
+        expect(axios.get.mock.calls[0][0])
           .toEqual(config.accessTokenUrl);
-        expect(fetch.mock.calls[0][1])
+        expect(axios.get.mock.calls[0][1])
           .toEqual({ headers: { code: requestToken } });
       });
     });
@@ -51,27 +50,25 @@ describe('Auth Service', () => {
 
   describe('refresh', () => {
     beforeEach(() => {
-      global.fetch = jest.fn();
+      axios.get = jest.fn();
     });
 
     it('should call to fetch new tokens using refresh token', () => {
       const refreshToken = 'refresh-token';
       const newAccessToken = 'new-access-token';
       const refreshTokenResponse = {
-        json: () => Promise.resolve({
-          access_token: newAccessToken,
-        }),
+        access_token: newAccessToken,
       };
-      fetch.mockResolvedValue(refreshTokenResponse);
+      axios.get.mockResolvedValue(refreshTokenResponse);
 
       const asyncResult = auth.refresh(refreshToken);
 
       return asyncResult.then((refreshResult) => {
         expect(refreshResult).toEqual({ accessToken: newAccessToken });
 
-        expect(fetch.mock.calls[0][0])
+        expect(axios.get.mock.calls[0][0])
           .toEqual(config.refreshTokenUrl);
-        expect(fetch.mock.calls[0][1])
+        expect(axios.get.mock.calls[0][1])
           .toEqual({ headers: { rfToken: refreshToken } });
       });
     });

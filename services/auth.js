@@ -1,16 +1,16 @@
 import { AuthSession } from 'expo';
+import { get } from 'axios';
 import config from '../config';
 
 function login() {
   return AuthSession.startAsync({
     authUrl: config.authUrl,
   })
-    .then(authResponse => fetch(config.accessTokenUrl, {
+    .then(authResponse => get(config.accessTokenUrl, {
       headers: {
         code: authResponse.params.code,
       },
     }))
-    .then(response => response.json())
     .then(result => ({
       accessToken: result.access_token,
       refreshToken: result.refresh_token,
@@ -18,12 +18,11 @@ function login() {
 }
 
 function refresh(refreshToken) {
-  return fetch(config.refreshTokenUrl, {
+  return get(config.refreshTokenUrl, {
     headers: {
       rfToken: refreshToken,
     },
   })
-    .then(response => response.json())
     .then(result => ({
       accessToken: result.access_token,
     }));
