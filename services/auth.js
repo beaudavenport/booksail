@@ -12,9 +12,9 @@ function login() {
         code: authResponse.params.code,
       },
     }))
-    .then(result => Promise.all([
-      AsyncStorage.setItem('accessToken', result.access_token),
-      AsyncStorage.setItem('refreshToken', result.refresh_token),
+    .then(({ data }) => Promise.all([
+      AsyncStorage.setItem('accessToken', data.access_token),
+      AsyncStorage.setItem('refreshToken', data.refresh_token),
     ]));
 }
 
@@ -25,7 +25,7 @@ function refresh() {
         rfToken: refreshToken,
       },
     }))
-    .then(result => AsyncStorage.setItem('accessToken', result.access_token));
+    .then(({ data }) => AsyncStorage.setItem('accessToken', data.access_token));
 }
 
 export default {

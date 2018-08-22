@@ -14,7 +14,7 @@ describe('Auth Service', () => {
       AsyncStorage.getItem = jest.fn();
 
       AuthSession.startAsync.mockResolvedValue({ params: {} });
-      axios.get.mockResolvedValue({});
+      axios.get.mockResolvedValue({ data: {} });
       AsyncStorage.setItem.mockResolvedValue({});
     });
 
@@ -34,8 +34,10 @@ describe('Auth Service', () => {
       AuthSession.startAsync
         .mockResolvedValue({ params: { code: requestToken } });
       const accessTokenResponse = {
-        access_token: accessToken,
-        refresh_token: refreshToken,
+        data: {
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        },
       };
       axios.get.mockResolvedValue(accessTokenResponse);
 
@@ -67,7 +69,9 @@ describe('Auth Service', () => {
       const newAccessToken = 'new-access-token';
       const refreshToken = 'refresh-token';
       const refreshTokenResponse = {
-        access_token: newAccessToken,
+        data: {
+          access_token: newAccessToken,
+        },
       };
       AsyncStorage.getItem.mockResolvedValue(refreshToken);
       axios.get.mockResolvedValue(refreshTokenResponse);
